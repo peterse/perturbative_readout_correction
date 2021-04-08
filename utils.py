@@ -104,17 +104,3 @@ def distance(a, b):
         binary distance between `a` and `b`.
     """
     return numberOfSetBits(a ^ b)
-
-
-def Qmatrix(q01, q10):
-    """Single-bit resposne matrix. qij := p(i|j) for bitwise error"""
-    return np.asarray([[1 - q10, q01],
-                       [q10, 1 - q01]])
-
-
-def Rmatrix(q01_arr, q10_arr):
-    """Efficiently compute a tensor-structure response matrix with normal ordering on indices."""
-    out = Qmatrix(q01_arr[0], q10_arr[0])
-    for j in range(1, len(q01_arr)):
-        out = np.kron(out, Qmatrix(q01_arr[j], q10_arr[j]))
-    return out

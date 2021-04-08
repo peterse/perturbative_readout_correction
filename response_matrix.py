@@ -39,11 +39,44 @@ def slice_for_Rj(n, j):
     return slices
 
 
-def make_truncated_Rinv(R, w1, w2=None):
-    """Compute $R^{-1}$ using a series truncation.
+def invert_pfull_truncated(R, p_prime, w1, w2=None):
+    """Compute $R^{-1}p'$ using a series truncation.
 
     Args:
         R: Baseline response matrix.
+        p_prime: Probability distribution representing observations WITH errors
         w1: Cutoff for the _infinite_ series for computing A^{-1}
         w2: Cutoff for the decomposition of R into {R_j: j=1, ..., w2}
+
+    Returns:
+        p_fixed: output distribution acheived by inverting R up to truncation
+            (w1, w2).
     """
+
+    if w2 is None:
+        w2 = w1
+
+    d = R.shape[0]
+    n = int(np.log2(d))
+    out = np.zeros((d, d))
+
+    # Compute the inverse of diagonal of R efficiently
+    R0_inv = np.zeros((d, d), dtype=float)
+    R0_inv[np.diag_indices(d)] = np.reciprocal(np.diag(R))
+
+    # Initialize series truncation for partitioned R
+    S = np.zeros((d, d))
+    for j in range(1, w2 + 1):
+        Rj = np.zeros((d,d))
+        Rj[slice_for_Rj(n, j)] = R[slice_for_Rj(n, j)]
+        S -= R0_inv @ Rj
+
+    # update output distribution
+    v = R0_inv.dot(p_prime)
+    p_fixed = np.copy(v)
+    for k in range(1, w1 + 1):
+        v = S.dot(v)
+        p_fixed += v
+
+    return p_fixed
+
