@@ -104,3 +104,9 @@ def distance(a, b):
         binary distance between `a` and `b`.
     """
     return numberOfSetBits(a ^ b)
+
+
+def int2bin_lendian(x, pad):
+    s = str(bin(x)[2:])
+    temp = "0" * (pad - len(s)) + s
+    return temp
