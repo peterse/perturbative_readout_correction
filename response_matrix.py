@@ -1,6 +1,7 @@
 import numpy as np
 import utils
 
+
 def Qmatrix(q01, q10):
     """Single-bit resposne matrix. qij := p(i|j) for bitwise error"""
     return np.asarray([[1 - q10, q01],
@@ -58,25 +59,54 @@ def invert_pfull_truncated(R, p_prime, w1, w2=None):
 
     d = R.shape[0]
     n = int(np.log2(d))
-    out = np.zeros((d, d))
 
     # Compute the inverse of diagonal of R efficiently
-    R0_inv = np.zeros((d, d), dtype=float)
-    R0_inv[np.diag_indices(d)] = np.reciprocal(np.diag(R))
+    Rdiag_inv = np.zeros((d, d), dtype=float)
+    Rdiag_inv[np.diag_indices(d)] = np.reciprocal(np.diag(R))
 
     # Initialize series truncation for partitioned R
     S = np.zeros((d, d))
     for j in range(1, w2 + 1):
-        Rj = np.zeros((d,d))
+        Rj = np.zeros((d, d))
         Rj[slice_for_Rj(n, j)] = R[slice_for_Rj(n, j)]
-        S -= R0_inv @ Rj
+        S -= Rdiag_inv @ Rj
 
     # update output distribution
-    v = R0_inv.dot(p_prime)
+    v = Rdiag_inv.dot(p_prime)
     p_fixed = np.copy(v)
     for k in range(1, w1 + 1):
         v = S.dot(v)
         p_fixed += v
 
     return p_fixed
+
+
+def invert_p0_truncated(R, p_prime, w):
+    """Compute $r_T ⋅ p'$ using a matrix Projection.
+
+    Args:
+        R: Baseline response matrix.
+        p_prime: Probability distribution representing observations WITH errors
+        w: Projection point for the matrix $R$ so that R_T includes no indices
+            with basis weight greater than w
+
+    Returns:
+        p0: corrected probability of the all-zeros bitstring
+    """
+
+    d = R.shape[0]
+    n = int(np.log2(d))
+
+    # Sort everything by basis weight
+    idx = utils.idxsort_by_weight(n)
+    R_ord = R[:,idx][idx,:]
+    p_prime_ord = p_prime[idx]
+
+    # Compute the inverse of diagonal of R efficiently
+    cutoff = sum([utils.ncr(n, r) for r in range(w+1)])
+    R_trunc = R_ord[:,:cutoff][:cutoff,:]
+    p_prime_trunc = p_prime_ord[:cutoff]
+
+    R_T_inv = np.linalg.inv(R_trunc)
+    return R_T_inv.dot(p_prime_trunc)[0]
 
