@@ -16,6 +16,13 @@ def Rmatrix(q01_arr, q10_arr):
     return out
 
 
+def generate_characteristic_R(qmax, n):
+    """qmax is the 'characteristic rate' that should be the maximum over individual flip rates"""
+    q01_arr = np.random.random(n) * qmax
+    q10_arr = np.random.random(n) * qmax
+    return Rmatrix(q01_arr, q10_arr)
+
+
 def slice_for_Rj(n, j):
     """Construct an array slice for all indices corresponding to an Rj cut.
 
