@@ -9,8 +9,10 @@ def kbits(n, k):
     Output indices are ordered consistently but arbitrarily.
 
     DISCLAIMER: ripped from StackOverflow, I don't take credit for this code.
+    
     Args:
         n, k: integers
+
     Returns:
         Generator for indices that are ordered by their binary weight.
     """
@@ -55,8 +57,8 @@ def binarr(m):
                [1, 1, 0],
                [1, 1, 1]])
     """
-    d = np.arange(2 ** m)
-    return (((d[:,None] & (1 << np.arange(m)))) > 0).astype(int)[:,::-1]
+    d = np.arange(2**m)
+    return (((d[:, None] & (1 << np.arange(m)))) > 0).astype(int)[:, ::-1]
 
 
 def ncr(n, r):
@@ -107,6 +109,7 @@ def distance(a, b):
 
 
 def int2bin_lendian(x, pad):
+    """Return a little endian string for bin(x) padded to `pad` bits."""
     s = str(bin(x)[2:])
     temp = "0" * (pad - len(s)) + s
     return temp

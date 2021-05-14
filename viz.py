@@ -12,7 +12,7 @@ def u_imshow(u, n, ax=None, sort_by_weight=True):
 
     if sort_by_weight:
         idx = utils.idxsort_by_weight(n)
-        U_ordered = u[:,idx][idx,:]
+        U_ordered = u[:, idx][idx, :]
     else:
         idx = np.arange(1 << n)
         U_ordered = u
@@ -48,7 +48,7 @@ def u_imshow_trunc(u, n, trunc=None, ax=None, sort_by_weight=True):
 
     if sort_by_weight:
         idx = utils.idxsort_by_weight(n)[:trunc]
-        U_ordered = u[:,idx][idx,:]
+        U_ordered = u[:, idx][idx, :]
     else:
         idx = np.arange(1 << n)[:trunc]
         U_ordered = u

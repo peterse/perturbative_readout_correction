@@ -3,13 +3,28 @@ import utils
 
 
 def Qmatrix(q01, q10):
-    """Single-bit resposne matrix. qij := p(i|j) for bitwise error"""
-    return np.asarray([[1 - q10, q01],
-                       [q10, 1 - q01]])
+    """Single-bit resposne matrix. qij := p(i|j) for bitwise error
+
+    Args:
+        q01: p(0|1) single qubit flip likelihood.
+        q10: p(1|0) single qubit flip likelihood.
+
+    Returns:
+        (2, 2) single qubit response matrix characterized by q01, q10.
+    """
+    return np.asarray([[1 - q10, q01], [q10, 1 - q01]])
 
 
 def Rmatrix(q01_arr, q10_arr):
-    """Efficiently compute a tensor-structure response matrix with normal ordering on indices."""
+    """Generate a tensor-structure response matrix with normal ordering.
+
+    Args:
+        q01_arr: list of likelihoods p(0|1) ordered by corresponding qubit.
+        q10_arr: list of likelihoods p(1|0) ordered by corresponding qubit.
+
+    Returns:
+        (2**n, 2**n) response matrix characterizing readout error for n qubits.
+    """
     out = Qmatrix(q01_arr[0], q10_arr[0])
     for j in range(1, len(q01_arr)):
         out = np.kron(out, Qmatrix(q01_arr[j], q10_arr[j]))
@@ -17,7 +32,12 @@ def Rmatrix(q01_arr, q10_arr):
 
 
 def generate_characteristic_R(qmax, n):
-    """qmax is the 'characteristic rate' that should be the maximum over individual flip rates"""
+    """Generate a response matrix with a characteristic error rate.
+
+    Args:
+        qmax: the 'characteristic rate' that should be the maximum over
+            individual flip rates
+    """
     q01_arr = np.random.random(n) * qmax
     q10_arr = np.random.random(n) * qmax
     return Rmatrix(q01_arr, q10_arr)
@@ -26,10 +46,10 @@ def generate_characteristic_R(qmax, n):
 def slice_for_Rj(n, j):
     """Construct an array slice for all indices corresponding to an Rj cut.
 
-    TODO: could be more efficient taking
     Args:
         n: number of bits
         j: "order" of R_j to compute
+        
     Returns:
         slices: tuple(np.ndarray, np.ndarray) of zipped (x,y) corrdinates, such
             that R[slices] = R_j
@@ -41,9 +61,9 @@ def slice_for_Rj(n, j):
             if k < i:
                 continue
             if utils.distance(i, k) == j:
-                out.append((i,k))
+                out.append((i, k))
     out = np.asarray(list(zip(*out)))
-    slices = tuple(np.hstack((out, out[::-1,:])))
+    slices = tuple(np.hstack((out, out[::-1, :])))
     return slices
 
 
@@ -106,14 +126,13 @@ def invert_p0_truncated(R, p_prime, w):
 
     # Sort everything by basis weight
     idx = utils.idxsort_by_weight(n)
-    R_ord = R[:,idx][idx,:]
+    R_ord = R[:, idx][idx, :]
     p_prime_ord = p_prime[idx]
 
     # Compute the inverse of diagonal of R efficiently
-    cutoff = sum([utils.ncr(n, r) for r in range(w+1)])
-    R_trunc = R_ord[:,:cutoff][:cutoff,:]
+    cutoff = sum([utils.ncr(n, r) for r in range(w + 1)])
+    R_trunc = R_ord[:, :cutoff][:cutoff, :]
     p_prime_trunc = p_prime_ord[:cutoff]
 
     R_T_inv = np.linalg.inv(R_trunc)
     return R_T_inv.dot(p_prime_trunc)[0]
-
