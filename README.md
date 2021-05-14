@@ -1,3 +1,3 @@
-# readout error truncation
+# Perturbative readout error mitigation for nearterm quantum computers
 
-simulations and utiltiies for performing truncated series readout correction and subspace projection readout correction.
+Supplementary code to reproduce figures and experiments from the publication "Perturbative readout error mitigation for nearterm quantum computers" (Evan Peters and Andy C. Y. Li and Gabe Perdue).
