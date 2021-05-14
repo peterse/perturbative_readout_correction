@@ -16,11 +16,7 @@ def u_imshow(u, n, ax=None, sort_by_weight=True):
     else:
         idx = np.arange(1 << n)
         U_ordered = u
-    re = ax.imshow(U_ordered, cmap='seismic', vmin=-1, vmax=1)
 
-    # fig.subplots_adjust(right=0.85)
-    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-    # fig.colorbar(im, cax=cbar_ax)
     ticks = np.arange(1 << n)
     # ticklabels get shuffled according to weight
     ticklabs = [utils.int2bin_lendian(i, n) for i in ticks[idx]]
@@ -52,11 +48,7 @@ def u_imshow_trunc(u, n, trunc=None, ax=None, sort_by_weight=True):
     else:
         idx = np.arange(1 << n)[:trunc]
         U_ordered = u
-    re = ax.imshow(U_ordered, cmap='seismic', vmin=-1, vmax=1)
 
-    # fig.subplots_adjust(right=0.85)
-    # cbar_ax = fig.add_axes([0.88, 0.15, 0.04, 0.7])
-    # fig.colorbar(im, cax=cbar_ax)
     ticks = np.arange(1 << n)
     # ticklabels get shuffled according to weight
     ticklabs = [utils.int2bin_lendian(i, n) for i in ticks[idx]]
