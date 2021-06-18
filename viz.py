@@ -4,7 +4,7 @@ import numpy as np
 import utils
 
 
-def u_imshow(u, n, ax=None, sort_by_weight=True):
+def u_imshow(u, n, sort_by_weight=True, ax=None,**kwargs):
 
     if ax is None:
         fig, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -16,6 +16,10 @@ def u_imshow(u, n, ax=None, sort_by_weight=True):
     else:
         idx = np.arange(1 << n)
         U_ordered = u
+
+    if not any(kwargs):
+        kwargs = {'cmap': 'seismic', 'vmin': -1, 'vmax': 1}
+    re = ax.imshow(U_ordered, **kwargs)
 
     ticks = np.arange(1 << n)
     # ticklabels get shuffled according to weight
