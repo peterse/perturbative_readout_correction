@@ -30,8 +30,58 @@ def Rmatrix(q01_arr, q10_arr):
         out = np.kron(out, Qmatrix(q01_arr[j], q10_arr[j]))
     return out
 
+def resample_Rmatrix(R: np.ndarray, qmax, delta, sampler=0):
+    """Resample a response matrix stochastically with violation error delta.
 
-def generate_characteristic_R(qmax, n):
+    Each element of the resulting response matrix will be have a multiplicative
+    error bounded by q_max with probability no more than delta.
+
+    `sampler` kwarg will determine which distribution these values are re-
+    sampled from:
+        0: Gaussian with sigma^2 = delta * R_{ij}^2 / (qmax^2)
+        1: Uniform with
+    """
+    if sampler == 0:
+        # Variance of Gaussian that is concentrated like delta, up to R_{ij}
+        conc_param = np.sqrt(delta) / qmax
+    elif sampler == 1:
+        # Half-width of Uniform distr that is concentrated like delta, up to R_{ij}
+        conc_param = np.sqrt(12 * delta) / qmax
+    n = R.shape[0]
+    out = np.zeros_like(R)
+    for i in range(n):
+        for j in range(n):
+            if sampler == 0:
+                rnew = max(0, np.random.normal(R[i,j], conc_param * R[i,j]))
+            elif sampler == 1:
+                rnew = max(0, np.random.uniform(low=R[i,j]-conc_param/2, high=R[i,j]+conc_param/2))
+            out[i,j] = rnew
+    # renormalize
+    for i in range(n):
+        out[:,i] = out[:,i] / sum(out[:,i])
+    return out
+
+
+# def resample_Rmatrix(R: np.ndarray, releps, delta):
+#     """Resample a response matrix stochastically with relative error releps.
+#
+#     Each element of the resulting response matrix will be have a multiplicative
+#     error bounded by q with probability no more than delta.
+#     than delta.
+#     """
+#     n = R.shape[0]
+#     k = np.sqrt(1/delta)
+#     out = np.zeros_like(R)
+#     for i in range(n):
+#         for j in range(n):
+#             rnew = max(0, np.random.normal(R[i,j], R[i,j] * releps/ k , 1))
+#             out[i,j] = rnew
+#     # renormalize
+#     for i in range(n):
+#         out[:,i] = out[:,i] / sum(out[:,i])
+#     return out
+
+def generate_characteristic_R(qmax, n, returnmax=False):
     """Generate a response matrix with a characteristic error rate.
 
     Args:
@@ -40,6 +90,8 @@ def generate_characteristic_R(qmax, n):
     """
     q01_arr = np.random.random(n) * qmax
     q10_arr = np.random.random(n) * qmax
+    if returnmax is True:
+        return (Rmatrix(q01_arr, q10_arr), max(max(q01_arr), max(q10_arr)))
     return Rmatrix(q01_arr, q10_arr)
 
 
@@ -49,7 +101,7 @@ def slice_for_Rj(n, j):
     Args:
         n: number of bits
         j: "order" of R_j to compute
-        
+
     Returns:
         slices: tuple(np.ndarray, np.ndarray) of zipped (x,y) corrdinates, such
             that R[slices] = R_j
